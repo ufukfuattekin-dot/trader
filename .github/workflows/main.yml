@@ -1,1 +1,28 @@
+name: Trading Bot
 
+on:
+  workflow_dispatch:   # 👈 BU ÇOK ÖNEMLİ (butonu açar)
+  schedule:
+    - cron: "0 7 * * 1-5"
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Repo çek
+        uses: actions/checkout@v3
+
+      - name: Python kur
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Kütüphaneler
+        run: pip install -r requirements.txt
+
+      - name: Botu çalıştır
+        run: python main.py
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
