@@ -1,8 +1,9 @@
 """Fetch OHLCV data for a list of tickers using yfinance."""
 import pandas as pd
 import yfinance as yf
+import time
 
-# BIST 30 — large-cap Turkish stocks (yfinance suffix .IS)
+# BIST 30
 DEFAULT_TICKERS = [
     "AKBNK.IS", "ARCLK.IS", "ASELS.IS", "BIMAS.IS", "EREGL.IS",
     "FROTO.IS", "GARAN.IS", "ISCTR.IS", "KCHOL.IS", "KOZAL.IS",
@@ -12,34 +13,46 @@ DEFAULT_TICKERS = [
 ]
 
 
+# 🔥 YENİ: güvenli veri çekme (retry + hata toleransı)
+def get_data(ticker, period="6mo", interval="1d"):
+    for i in range(3):  # 3 kez dene
+        try:
+            print(f"İşleniyor: {ticker}")
+
+            df = yf.download(
+                ticker,
+                period=period,
+                interval=interval,
+                progress=False,
+                auto_adjust=True,
+            )
+
+            if df is not None and not df.empty and len(df) > 50:
+                if isinstance(df.columns, pd.MultiIndex):
+                    df.columns = df.columns.get_level_values(0)
+                return df.dropna()
+
+        except Exception as e:
+            print(f"HATA: {ticker} → {e}")
+            time.sleep(2)
+
+    print(f"FAIL: {ticker}")
+    return None
+
+
+# 🔥 YENİ: tek tek çek (toplu değil)
 def fetch_data(tickers, period="6mo", interval="1d"):
     if isinstance(tickers, str):
         tickers = [tickers]
 
-    if len(tickers) == 1:
-        df = yf.download(
-            tickers[0], period=period, interval=interval,
-            progress=False, auto_adjust=True,
-        )
-        if df is None or df.empty:
-            return {}
-        if isinstance(df.columns, pd.MultiIndex):
-            df.columns = df.columns.get_level_values(0)
-        return {tickers[0]: df.dropna()} if len(df) > 50 else {}
-
-    raw = yf.download(
-        tickers, period=period, interval=interval,
-        group_by="ticker", progress=False, auto_adjust=True, threads=True,
-    )
-
     results = {}
+
     for ticker in tickers:
-        try:
-            df = raw[ticker].dropna()
-            if len(df) > 50:
-                results[ticker] = df
-        except (KeyError, ValueError, TypeError):
-            continue
+        df = get_data(ticker, period, interval)
+
+        if df is not None:
+            results[ticker] = df
+
     return results
 
 
