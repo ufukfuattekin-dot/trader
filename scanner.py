@@ -3,13 +3,9 @@ import pandas as pd
 import yfinance as yf
 import time
 
-# BIST 30
+# MAG
 DEFAULT_TICKERS = [
-    "AKBNK.IS", "ARCLK.IS", "ASELS.IS", "BIMAS.IS", "EREGL.IS",
-    "FROTO.IS", "GARAN.IS", "ISCTR.IS", "KCHOL.IS", "KOZAL.IS",
-    "PETKM.IS", "PGSUS.IS", "SAHOL.IS", "SASA.IS", "SISE.IS",
-    "TAVHL.IS", "TCELL.IS", "THYAO.IS", "TOASO.IS", "TUPRS.IS",
-    "VAKBN.IS", "YKBNK.IS",
+    "AAPL", "MSFT", "NVDA", "TSLA"
 ]
 
 
